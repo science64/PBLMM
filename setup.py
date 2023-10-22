@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="PBLMM",
-    version="2.0",
+    version="2.1",
     author="Kevin Klann",
     author_email="klann@em.uni-frankfurt.de",
     # Updated by = "Süleyman Bozkurt",

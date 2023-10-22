@@ -1,5 +1,5 @@
 import time
-
+import warnings
 import statsmodels.formula.api as smf
 import pandas as pd
 from statsmodels.stats.multitest import multipletests
@@ -7,6 +7,8 @@ import numpy as np
 from scipy import stats
 import math
 import statistics
+
+# warnings.filterwarnings("ignore")
 
 class Defaults:
 
@@ -228,6 +230,7 @@ class HypothesisTesting:
                 temp = melted_Peptides[(melted_Peptides['variable'].str.fullmatch(pair[0])) | (
                     melted_Peptides['variable'].str.fullmatch(pair[1]))]
 
+                temp = temp.copy()
                 temp['value'] = np.log2(temp['value'])
                 temp = temp.dropna()
 
@@ -257,8 +260,8 @@ class HypothesisTesting:
                         else:
                             pass
 
-                        fc = result.params[1] * decisionOfColumnName  # CDDO and DMSO change the order 1CDDO and 1DMSO
-                        pval = result.pvalues[1]
+                        fc = result.params.iloc[1] * decisionOfColumnName  # CDDO and DMSO change the order 1CDDO and 1DMSO
+                        pval = result.pvalues.iloc[1]
 
                         fold_changes.append(fc)
                         result_dict[i] = pval
