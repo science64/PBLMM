@@ -8,7 +8,7 @@ from scipy import stats
 import math
 import statistics
 
-# warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore")
 
 class Defaults:
 
