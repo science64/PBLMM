@@ -13,7 +13,6 @@ warnings.filterwarnings("ignore")
 class Defaults:
 
     def __init__(self) -> None:
-
         self.MasterProteinAccession = "Master Protein Accessions"
         self.sequence = 'Annotated Sequence'
         self.AbundanceColumn = "Abundance:"
