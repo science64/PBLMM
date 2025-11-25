@@ -2,7 +2,7 @@
 
 ## Peptide-Based Linear Mixed Model for Proteomics Data Analysis
 
-**Version 2.1.1** (2023-10-23)
+**Version 2.1.2** (2025-11-05)
 
 PBLMM is a Python package that implements a peptide-based linear mixed model approach for analyzing proteomics data. It allows for robust statistical analysis of protein abundance changes across different conditions by properly accounting for peptide-level variation.
 
@@ -94,20 +94,6 @@ defaults = Defaults()
 defaults.MasterProteinAccession = "Your Protein ID Column"
 defaults.sequence = "Your Sequence Column"
 defaults.AbundanceColumn = "Your Abundance Column Prefix"
-```
-
-### Technical Replicates and Multiplexing
-
-For experiments with technical replicates or multiple plexes:
-
-```python
-results = ht.peptide_based_lmm(
-    input_file=data,
-    conditions=conditions,
-    techreps=["rep1", "rep1", "rep2", "rep2"],
-    plexes=["plex1", "plex1", "plex2", "plex2"],
-    pairs=pairs
-)
 ```
 
 ## Citation
