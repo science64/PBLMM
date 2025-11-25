@@ -1,4 +1,3 @@
-import time
 import warnings
 import statsmodels.formula.api as smf
 import pandas as pd
@@ -61,7 +60,7 @@ class Rollup:
         '''
 
         mpa1 = self.defaults.MasterProteinAccession
-        print('Calculate Protein quantifications from PSM')
+        print('Calculate Protein quantifications from Peptides')
         mpa = [col for col in input_file.columns if mpa1 in col]
         mpa = mpa[0]
 
@@ -166,7 +165,7 @@ class HypothesisTesting:
                 input_file = input_file.dropna(subset=channels)
             else:
                 pass
-            print('No Normalization applied')
+            # print('No Normalization applied')
         # Protein level quantifications
         roll = Rollup(self.defaults)
         protein_data = roll.protein_rollup_sum(
@@ -219,12 +218,12 @@ class HypothesisTesting:
 
         if pairs != None:
             for pair in pairs:
-                if pair[0][0] < pair[1][0]: # pair = ['1CDDO', '0DMSO'] pair = ['CDDO', 'DMSO'] to assing FC correctly
+                if pair[0] < pair[1]: # pair = ['1CDDO', '0DMSO'] pair = ['CDDO', 'DMSO'] to assing FC correctly
                     decisionOfColumnName = -1
                 else:
                     decisionOfColumnName = 1
 
-                print(pair, 'and decision:', decisionOfColumnName)
+                print(f"{pair} is analysing via PBLMM...")
 
                 temp = melted_Peptides[(melted_Peptides['variable'].str.fullmatch(pair[0])) | (
                     melted_Peptides['variable'].str.fullmatch(pair[1]))]
