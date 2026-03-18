@@ -13,11 +13,13 @@ PBLMM is a Python package that implements a peptide-based linear mixed model app
 - **Hypothesis testing** with both LMM and t-test approaches
 - **Multiple testing correction** using FDR control
 - **Flexible data processing** compatible with various proteomics data formats
+- No Support for pandas version 3 (recommended version 2.3.3).
 
 ## Installation
 
 ```bash
 pip install git+https://github.com/science64/PBLMM.git
+pip install pandas==2.3.3
 ```
 
 ## Quick Start
