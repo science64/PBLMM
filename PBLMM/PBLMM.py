@@ -324,20 +324,28 @@ class HypothesisTesting:
             second = result.columns[result.columns.str.contains(pair[0])]  # 8mM_D-ala
             first = result.columns[result.columns.str.contains(pair[1])]  # Control
 
+            fc_list = []
+            pval_list = []
+
             for accession in allAccessions:
                 list1 = result.loc[accession, first[0]].values.tolist() # first[0] is the repeating name so we need to take the first one
                 list2 = result.loc[accession, second[0]].values.tolist() # first[1] is the repeating name so we need to take the first one
-                result.loc[accession, f'Log2({pair[0]}/{pair[1]})'] = math.log(
-                    float(statistics.mean(list2)) / float(statistics.mean(list1)), 2)
+                fc_list.append(math.log(
+                    float(statistics.mean(list2)) / float(statistics.mean(list1)), 2))
 
                 if testType == 'unpaired':
-                    result.loc[accession, f'p_value ({pair[0]}/{pair[1]})'] = float(
-                        stats.ttest_ind(list2, list1, equal_var=True)[1])
-                    # result.loc[accession, f'-Log10 p_value ({pair[0]}/{pair[1]})'] = -math.log(
-                    #     float(stats.ttest_ind(list2, list1, equal_var=True)[1]),
-                    #     10)
-                # else:
-                #     result.loc[accession, f'-Log10 p_value({pair[0]}/{pair[1]})'] = -math.log(
-                #         float(stats.ttest_rel(list2, list1)[1]), 10)
+                    pval_list.append(float(
+                        stats.ttest_ind(list2, list1, equal_var=True)[1]))
+
+
+            # Multiple testing correction (Benjamini-Hochberg FDR)
+            pvals = np.array(pval_list)
+            pvals = np.where(np.isnan(pvals), 1, pvals)
+            reject, pvals_corrected, a, b = multipletests(pvals, method='fdr_bh')
+
+            for idx, accession in enumerate(allAccessions):
+                result.loc[accession, f'Log2({pair[0]}/{pair[1]})'] = fc_list[idx]
+                result.loc[accession, f'p_value ({pair[0]}/{pair[1]})'] = pval_list[idx]
+                result.loc[accession, f'q_value ({pair[0]}/{pair[1]})'] = pvals_corrected[idx]
 
         return result
