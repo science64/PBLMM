@@ -293,7 +293,12 @@ class HypothesisTesting:
         return protein_data
 
     def ttest(self, result, conditions, pairs=None):
-        columns =  [
+        '''This function takes a peptide level dataframe (converts peptide into protein level) and performs t-tests for pairwise comparisons. 
+        The pairs variable takes an array of arrays, where each inner array contains the two conditions that are compared. 
+        For example: pairs = [['CDDO', 'DMSO'], ['1CDDO', '1DMSO']]
+        '''
+
+        columns = [
             self.defaults.sequence,
             self.defaults.MasterProteinAccession,
             self.defaults.AbundanceColumn,
@@ -303,11 +308,9 @@ class HypothesisTesting:
         if channels == []:
             channels = [col for col in result.columns if 'Abundance' in col]
 
-        # Protein level quantifications
+        # Protein level quantifications from peptide input
         roll = Rollup(self.defaults)
-        result = roll.protein_rollup_sum(
-            input_file=result, channels=channels)
-
+        result = roll.protein_rollup_sum(input_file=result, channels=channels)
         columnDict = {channels[i]: conditions[i] for i in range(len(channels))}
         result = result.rename(columns=columnDict)
 
@@ -319,12 +322,10 @@ class HypothesisTesting:
         allAccessions = result.index # index contatins all accessions
 
         for pair in pairs:
+            second = result.columns[result.columns.str.contains(pair[0])]
+            first  = result.columns[result.columns.str.contains(pair[1])]
 
-            # Using .str.contains() to filter columns based on pair names
-            second = result.columns[result.columns.str.contains(pair[0])]  # 8mM_D-ala
-            first = result.columns[result.columns.str.contains(pair[1])]  # Control
-
-            fc_list = []
+            fc_list   = []
             pval_list = []
 
             for accession in allAccessions:
@@ -337,15 +338,14 @@ class HypothesisTesting:
                     pval_list.append(float(
                         stats.ttest_ind(list2, list1, equal_var=True)[1]))
 
-
-            # Multiple testing correction (Benjamini-Hochberg FDR)
+            # BH correction
             pvals = np.array(pval_list)
             pvals = np.where(np.isnan(pvals), 1, pvals)
-            reject, pvals_corrected, a, b = multipletests(pvals, method='fdr_bh')
+            _, pvals_corrected, _, _ = multipletests(pvals, method='fdr_bh')
 
-            for idx, accession in enumerate(allAccessions):
-                result.loc[accession, f'Log2({pair[0]}/{pair[1]})'] = fc_list[idx]
-                result.loc[accession, f'p_value ({pair[0]}/{pair[1]})'] = pval_list[idx]
-                result.loc[accession, f'q_value ({pair[0]}/{pair[1]})'] = pvals_corrected[idx]
+            # Assign once, outside loop, matching PBLMM naming exactly
+            result[f'log2({pair[0]}/{pair[1]})']   = fc_list
+            result[f'p_value {pair[0]}/{pair[1]}'] = pval_list
+            result[f'q_value {pair[0]}/{pair[1]}'] = pvals_corrected
 
         return result
