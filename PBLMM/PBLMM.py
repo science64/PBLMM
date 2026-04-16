@@ -292,10 +292,19 @@ class HypothesisTesting:
 
         return protein_data
 
-    def ttest(self, result, conditions, pairs=None):
+    def ttest(self, result, conditions, pairs=None, level_data='peptide', channels=None):
         '''This function takes a peptide level dataframe (converts peptide into protein level) and performs t-tests for pairwise comparisons. 
         The pairs variable takes an array of arrays, where each inner array contains the two conditions that are compared. 
         For example: pairs = [['CDDO', 'DMSO'], ['1CDDO', '1DMSO']]
+
+        level_data: 'peptide' (default) — performs rollup from peptide/PSM level to protein level before testing.
+                    'protein' — skips rollup; expects a protein-level dataframe with an accession column
+                                (e.g. containing 'Master Protein Accessions' or 'Accession') and abundance columns.
+
+        channels: optional list of exact column names to use as abundance channels.
+                  When provided, auto-detection is skipped — use this for protein-level files
+                  where column names don't contain 'Abundance:' (e.g. 'Abundances_Normalized_126')
+                  or when only a specific subset of abundance columns should be used.
         '''
 
         columns = [
@@ -304,22 +313,36 @@ class HypothesisTesting:
             self.defaults.AbundanceColumn,
         ]
         self.pair_names = []
-        channels = [col for col in result.columns if columns[2] in col]
-        if channels == []:
-            channels = [col for col in result.columns if 'Abundance' in col]
 
-        # Protein level quantifications from peptide input
-        roll = Rollup(self.defaults)
-        result = roll.protein_rollup_sum(input_file=result, channels=channels)
-        columnDict = {channels[i]: conditions[i] for i in range(len(channels))}
-        result = result.rename(columns=columnDict)
+        if channels is None:
+            channels = [col for col in result.columns if columns[2] in col]
+            if channels == []:
+                channels = [col for col in result.columns if 'Abundance' in col]
 
-        # Drop rows where the sum across the row (excluding 'index' column) is 0
-        # this is especially important because of mePROD and basal level substraction makes 0 for entire row
-        result = result[result.sum(axis=1) != 0]
+        if level_data == 'peptide':
+            # Protein level quantifications from peptide input
+            roll = Rollup(self.defaults)
+            result = roll.protein_rollup_sum(input_file=result, channels=channels)
+            columnDict = {channels[i]: conditions[i] for i in range(len(channels))}
+            result = result.rename(columns=columnDict)
+
+            # Drop rows where the sum across the row (excluding 'index' column) is 0
+            # this is especially important because of mePROD and basal level substraction makes 0 for entire row
+            result = result[result.sum(axis=1) != 0]
+
+        elif level_data == 'protein':
+            # Protein-level input: set accession column as index, keep only abundance columns
+            acc_col = [col for col in result.columns if columns[1] in col]
+            if not acc_col:
+                acc_col = [col for col in result.columns if 'Accession' in col]
+            if acc_col:
+                result = result.set_index(acc_col[0])
+            result = result[channels]
+            columnDict = {channels[i]: conditions[i] for i in range(len(channels))}
+            result = result.rename(columns=columnDict)
 
         testType = 'unpaired'  # for only supports unpaired t test
-        allAccessions = result.index # index contatins all accessions
+        allAccessions = result.index  # index contains all accessions
 
         for pair in pairs:
             second = result.columns[result.columns.str.contains(pair[0])]
