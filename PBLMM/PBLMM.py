@@ -354,8 +354,13 @@ class HypothesisTesting:
             for accession in allAccessions:
                 list1 = result.loc[accession, first[0]].values.tolist() # first[0] is the repeating name so we need to take the first one
                 list2 = result.loc[accession, second[0]].values.tolist() # first[1] is the repeating name so we need to take the first one
-                fc_list.append(math.log(
-                    float(statistics.mean(list2)) / float(statistics.mean(list1)), 2))
+                mean1 = float(statistics.mean(list1))
+                mean2 = float(statistics.mean(list2))
+
+                if mean1 == 0 or mean2 == 0:
+                    fc_list.append(np.nan)
+                else:
+                    fc_list.append(math.log(mean2 / mean1, 2))
 
                 if testType == 'unpaired':
                     pval_list.append(float(

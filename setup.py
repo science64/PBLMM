@@ -5,11 +5,11 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="PBLMM",
-    version="2.1.4",
+    version="2.1.5",
     author="Kevin Klann",
     author_email="klann@em.uni-frankfurt.de",
     # Updated by = "Süleyman Bozkurt",
-    # Updated date = '16/04/2026'
+    # Updated date = '18/04/2026'
     description="Python package for linear mixed model for peptide level of proteomics",
     long_description=long_description,
     long_description_content_type="text/markdown",
